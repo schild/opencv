@@ -238,9 +238,9 @@ class ArgInfo(object):
                 self.tp = "const std::vector<cv::Mat>&"
         self.tp = handle_vector(self.tp).strip()
         if self.const:
-            self.tp = "const " + self.tp
+            self.tp = f"const {self.tp}"
         if self.reference:
-            self.tp = self.tp + "&"
+            self.tp = f"{self.tp}&"
         self.py_inputarg = False
         self.py_outputarg = False
 
@@ -265,8 +265,7 @@ class FuncVariant(object):
             ainfo = ArgInfo(a)
             if ainfo.isarray and not ainfo.arraycvt:
                 c = ainfo.arraylen
-                c_arrlist = self.array_counters.get(c, [])
-                if c_arrlist:
+                if c_arrlist := self.array_counters.get(c, []):
                     c_arrlist.append(ainfo.name)
                 else:
                     self.array_counters[c] = [ainfo.name]
@@ -314,8 +313,9 @@ class JSWrapperGenerator(object):
         self.class_idx += 1
 
         if class_info.name in self.classes:
-            print("Generator error: class %s (cpp_name=%s) already exists" \
-                  % (class_info.name, class_info.cname))
+            print(
+                f"Generator error: class {class_info.name} (cpp_name={class_info.cname}) already exists"
+            )
             sys.exit(-1)
         self.classes[class_info.name] = class_info
 
@@ -334,8 +334,9 @@ class JSWrapperGenerator(object):
                     del chunks[-2]
                     base = '_'.join(chunks)
                 if base not in self.classes:
-                    print("Generator error: unable to resolve base %s for %s"
-                        % (class_info.bases[0], class_info.name))
+                    print(
+                        f"Generator error: unable to resolve base {class_info.bases[0]} for {class_info.name}"
+                    )
                     sys.exit(-1)
                 else:
                     class_info.bases[0] = "::".join(chunks)
@@ -370,9 +371,8 @@ class JSWrapperGenerator(object):
         cname = name.replace('.', '::')
         type_dict[normalize_class_name(name)] = cname
         if name in ns.enums:
-            print("Generator warning: enum %s (cname=%s) already exists" \
-                  % (name, cname))
-            # sys.exit(-1)
+            print(f"Generator warning: enum {name} (cname={cname}) already exists")
+                # sys.exit(-1)
         else:
             ns.enums[name] = []
         for item in decl[3]:
@@ -391,8 +391,7 @@ class JSWrapperGenerator(object):
         name = '_'.join(classes+[name])
         ns = self.namespaces.setdefault(namespace, Namespace())
         if name in ns.consts:
-            print("Generator error: constant %s (cname=%s) already exists" \
-                % (name, cname))
+            print(f"Generator error: constant {name} (cname={cname}) already exists")
             sys.exit(-1)
         ns.consts[name] = cname
 
@@ -445,9 +444,8 @@ class JSWrapperGenerator(object):
         func.add_variant(variant)
 
     def save(self, path, name, buf):
-        f = open(path + "/" + name, "wt")
-        f.write(buf.getvalue())
-        f.close()
+        with open(f"{path}/{name}", "wt") as f:
+            f.write(buf.getvalue())
 
     def gen_function_binding_with_wrapper(self, func, ns_name, class_info):
 

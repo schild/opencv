@@ -148,9 +148,7 @@ class filestorage_io_test(NewOpenCVTests):
         shape = (0, 0)
         cn = 1
 
-        image = np.zeros(shape + (cn,), np.uint8)
-
-        return image
+        return np.zeros(shape + (cn,), np.uint8)
 
     @staticmethod
     def get_random_mat():
@@ -158,20 +156,14 @@ class filestorage_io_test(NewOpenCVTests):
         cols = 16
         cn = 1
 
-        image = np.random.rand(rows, cols, cn)
-
-        return image
+        return np.random.rand(rows, cols, cn)
 
     @staticmethod
     def decode(data):
         # strip $base64$
         encoded = data[8:]
 
-        if len(encoded) == 0:
-            return b''
-
-        # strip info about datatype and padding
-        return base64.b64decode(encoded)[24:]
+        return b'' if len(encoded) == 0 else base64.b64decode(encoded)[24:]
 
     def write_base64_json(self, fname):
         fs = cv.FileStorage(fname, cv.FileStorage_WRITE_BASE64)
@@ -194,11 +186,7 @@ class filestorage_io_test(NewOpenCVTests):
             buffer = b''
 
             if mat.size != 0:
-                if hasattr(mat, 'tobytes'):
-                    buffer = mat.tobytes()
-                else:
-                    buffer = mat.tostring()
-
+                buffer = mat.tobytes() if hasattr(mat, 'tobytes') else mat.tostring()
             self.assertEqual(buffer, self.decode(data[name]['data']))
 
 

@@ -20,13 +20,12 @@ class Mat(_NumPyArrayGeneric):
     '''
 
     def __new__(cls, arr, **kwargs):
-        obj = arr.view(Mat)
-        return obj
+        return arr.view(Mat)
 
     def __init__(self, arr, **kwargs):
         self.wrap_channels = kwargs.pop('wrap_channels', getattr(arr, 'wrap_channels', False))
-        if len(kwargs) > 0:
-            raise TypeError('Unknown parameters: {}'.format(repr(kwargs)))
+        if kwargs:
+            raise TypeError(f'Unknown parameters: {repr(kwargs)}')
 
     def __array_finalize__(self, obj):
         if obj is None:

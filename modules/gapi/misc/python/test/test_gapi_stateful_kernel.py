@@ -68,7 +68,7 @@ try:
             comp  = cv.GComputation(cv.GIn(g_in), cv.GOut(g_out))
             pkg   = cv.gapi.kernels(GStatefulCounterImpl)
 
-            nums = [i for i in range(10)]
+            nums = list(range(10))
             acc = 0
             for v in nums:
                 acc = comp.apply(cv.gin(v), args=cv.gapi.compile_args(pkg))
@@ -84,7 +84,7 @@ try:
             comp   = cv.GComputation(cv.GIn(g_in), cv.GOut(g_out0, g_out1))
             pkg    = cv.gapi.kernels(GStatefulCounterImpl)
 
-            nums = [i for i in range(10)]
+            nums = list(range(10))
             acc0 = acc1 = 0
             for v in nums:
                 acc0, acc1 = comp.apply(cv.gin(v), args=cv.gapi.compile_args(pkg))
@@ -204,7 +204,7 @@ except unittest.SkipTest as e:
 
     class TestSkip(unittest.TestCase):
         def setUp(self):
-            self.skipTest('Skip tests: ' + message)
+            self.skipTest(f'Skip tests: {message}')
 
         def test_skip():
             pass

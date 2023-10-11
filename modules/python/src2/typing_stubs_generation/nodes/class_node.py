@@ -25,9 +25,7 @@ class ClassProperty(NamedTuple):
         try:
             self.type_node.resolve(root)
         except TypeResolutionError as e:
-            raise TypeResolutionError(
-                'Failed to resolve "{}" property'.format(self.name)
-            ) from e
+            raise TypeResolutionError(f'Failed to resolve "{self.name}" property') from e
 
     def relative_typename(self, full_node_name: str) -> str:
         """Typename relative to the passed AST node name.
@@ -174,11 +172,9 @@ class ClassNode(ASTNode):
                     child.resolve_type_nodes(root)  # type: ignore
             except TypeResolutionError as e:
                 errors.append(str(e))
-        if len(errors) > 0:
+        if errors:
             raise TypeResolutionError(
-                'Failed to resolve "{}" class against "{}". Errors: {}'.format(
-                    self.full_export_name, root.full_export_name, errors
-                )
+                f'Failed to resolve "{self.full_export_name}" class against "{root.full_export_name}". Errors: {errors}'
             )
 
 

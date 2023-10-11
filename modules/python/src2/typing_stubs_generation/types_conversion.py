@@ -95,11 +95,11 @@ def get_template_instantiation_type(typename: str) -> str:
     _, args = replace_template_parameters_with_placeholders(typename)
     if len(args) == 0:
         raise ValueError(
-            "typename ('{}') doesn't contain template instantiations".format(typename)
+            f"typename ('{typename}') doesn't contain template instantiations"
         )
     if len(args) > 1:
         raise ValueError(
-            "typename ('{}') contains more than 1 template instantiation".format(typename)
+            f"typename ('{typename}') contains more than 1 template instantiation"
         )
     return args[0]
 
@@ -161,7 +161,7 @@ def normalize_ctype_name(typename: str) -> str:
     if typename.startswith("GOpaque_") or typename.startswith("GOpaque<"):
         return "GOpaqueT"
     if typename == "GStreamerPipeline" or typename.startswith("GStreamerSource"):
-        return "gst_" + typename
+        return f"gst_{typename}"
 
     return typename
 
@@ -196,8 +196,9 @@ def _is_template_instantiation(typename: str) -> bool:
     """
 
     if "<" in typename:
-        assert ">" in typename, \
-            "Wrong template class instantiation: {}. '>' is missing".format(typename)
+        assert (
+            ">" in typename
+        ), f"Wrong template class instantiation: {typename}. '>' is missing"
         return True
     return False
 

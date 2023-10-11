@@ -57,10 +57,15 @@ try:
                 # OpenCV - (num_points, 1, 2)
                 # G-API  - (num_points, 2)
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected.flatten(),
-                                              np.array(actual, dtype=np.float32).flatten(),
-                                              cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(
+                        expected.flatten(),
+                        np.array(actual, dtype=np.float32).flatten(),
+                        cv.NORM_INF,
+                    ),
+                    f'Failed on {pkg_name} backend',
+                )
 
 
         def test_rgb2gray(self):
@@ -80,8 +85,11 @@ try:
             for pkg_name, pkg in pkgs:
                 actual = comp.apply(cv.gin(in1), args=cv.gapi.compile_args(pkg))
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected, actual, cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(expected, actual, cv.NORM_INF),
+                    f'Failed on {pkg_name} backend',
+                )
 
 
         def test_bounding_rect(self):
@@ -105,8 +113,11 @@ try:
             for pkg_name, pkg in pkgs:
                 actual = comp.apply(cv.gin(points), args=cv.gapi.compile_args(pkg))
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected, actual, cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(expected, actual, cv.NORM_INF),
+                    f'Failed on {pkg_name} backend',
+                )
 
 
 except unittest.SkipTest as e:
@@ -115,7 +126,7 @@ except unittest.SkipTest as e:
 
     class TestSkip(unittest.TestCase):
         def setUp(self):
-            self.skipTest('Skip tests: ' + message)
+            self.skipTest(f'Skip tests: {message}')
 
         def test_skip():
             pass

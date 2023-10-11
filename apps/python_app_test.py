@@ -28,11 +28,13 @@ def load_tests(loader, tests, pattern):
         with open(config_file, 'r') as f:
             locations += [str(s).strip() for s in f.readlines()]
     else:
-        print('WARNING: OpenCV tests config file ({}) is missing, running subset of tests'.format(config_file))
+        print(
+            f'WARNING: OpenCV tests config file ({config_file}) is missing, running subset of tests'
+        )
 
     tests_pattern = os.environ.get('OPENCV_APPS_TEST_FILTER', 'test_*') + '.py'
     if tests_pattern != 'test_*.py':
-        print('Tests filter: {}'.format(tests_pattern))
+        print(f'Tests filter: {tests_pattern}')
 
     processed = set()
     for l in locations:
@@ -41,12 +43,12 @@ def load_tests(loader, tests, pattern):
         if l in processed:
             continue
         processed.add(l)
-        print('Discovering python tests from: {}'.format(l))
+        print(f'Discovering python tests from: {l}')
         sys_path_modify = l not in sys.path
         if sys_path_modify:
             sys.path.append(l)  # Hack python loader
         discovered_tests = loader.discover(l, pattern=tests_pattern, top_level_dir=l)
-        print('    found {} tests'.format(discovered_tests.countTestCases()))
+        print(f'    found {discovered_tests.countTestCases()} tests')
         tests.addTests(loader.discover(l, pattern=tests_pattern))
         if sys_path_modify:
             sys.path.remove(l)

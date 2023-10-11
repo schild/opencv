@@ -237,7 +237,7 @@ class AliasRefTypeNode(TypeNode):
 
     @property
     def full_typename(self) -> str:
-        return "cv2.typing." + self.typename
+        return f"cv2.typing.{self.typename}"
 
 
 class AliasTypeNode(TypeNode):
@@ -266,13 +266,11 @@ class AliasTypeNode(TypeNode):
 
     @property
     def typename(self) -> str:
-        if self._export_name is not None:
-            return self._export_name
-        return self.ctype_name
+        return self._export_name if self._export_name is not None else self.ctype_name
 
     @property
     def full_typename(self) -> str:
-        return "cv2.typing." + self.typename
+        return f"cv2.typing.{self.typename}"
 
     @property
     def required_definition_imports(self) -> Generator[str, None, None]:
@@ -291,9 +289,7 @@ class AliasTypeNode(TypeNode):
             self.value.resolve(root)
         except TypeResolutionError as e:
             raise TypeResolutionError(
-                'Failed to resolve alias "{}" exposed as "{}"'.format(
-                    self.ctype_name, self.typename
-                )
+                f'Failed to resolve alias "{self.ctype_name}" exposed as "{self.typename}"'
             ) from e
 
     @classmethod
@@ -433,13 +429,11 @@ class ConditionalAliasTypeNode(TypeNode):
 
     @property
     def typename(self) -> str:
-        if self._export_name is not None:
-            return self._export_name
-        return self.ctype_name
+        return self._export_name if self._export_name is not None else self.ctype_name
 
     @property
     def full_typename(self) -> str:
-        return "cv2.typing." + self.typename
+        return f"cv2.typing.{self.typename}"
 
     @property
     def required_definition_imports(self) -> Generator[str, None, None]:
@@ -462,9 +456,7 @@ class ConditionalAliasTypeNode(TypeNode):
             self.negative_branch_type.resolve(root)
         except TypeResolutionError as e:
             raise TypeResolutionError(
-                'Failed to resolve alias "{}" exposed as "{}"'.format(
-                    self.ctype_name, self.typename
-                )
+                f'Failed to resolve alias "{self.ctype_name}" exposed as "{self.typename}"'
             ) from e
 
     @classmethod
@@ -539,39 +531,40 @@ class ASTNodeTypeNode(TypeNode):
         # NOTE: Special handling for enums
         parent = self._ast_node.parent
         while parent.node_type is ASTNodeType.Class:
-            typename = parent.export_name + "_" + typename
+            typename = f"{parent.export_name}_{typename}"
             parent = parent.parent
         return typename
 
     @property
     def full_typename(self) -> str:
-        if self._ast_node is not None:
-            if self._ast_node.node_type is not ASTNodeType.Enumeration:
-                return self._ast_node.full_export_name
-            # NOTE: enumerations are exported to module scope
-            typename = self._ast_node.export_name
-            parent = self._ast_node.parent
-            while parent.node_type is ASTNodeType.Class:
-                typename = parent.export_name + "_" + typename
-                parent = parent.parent
-            return parent.full_export_name + "." + typename
-        if self._module_name is not None:
-            return self._module_name + "." + self._typename
-        return self._typename
+        if self._ast_node is None:
+            return (
+                f"{self._module_name}.{self._typename}"
+                if self._module_name is not None
+                else self._typename
+            )
+        if self._ast_node.node_type is not ASTNodeType.Enumeration:
+            return self._ast_node.full_export_name
+        # NOTE: enumerations are exported to module scope
+        typename = self._ast_node.export_name
+        parent = self._ast_node.parent
+        while parent.node_type is ASTNodeType.Class:
+            typename = f"{parent.export_name}_{typename}"
+            parent = parent.parent
+        return f"{parent.full_export_name}.{typename}"
 
     @property
     def required_usage_imports(self) -> Generator[str, None, None]:
         if self._module_name is None:
-            assert self._ast_node is not None, \
-                "Can't find a module for class '{}' exported as '{}'".format(
-                    self.ctype_name, self.typename,
-                )
+            assert (
+                self._ast_node is not None
+            ), f"Can't find a module for class '{self.ctype_name}' exported as '{self.typename}'"
             module = self._ast_node.parent
             while module.node_type is not ASTNodeType.Namespace:
                 module = module.parent
-            yield "import " + module.full_export_name
+            yield f"import {module.full_export_name}"
         else:
-            yield "import " + self._module_name
+            yield f"import {self._module_name}"
 
     @property
     def is_resolved(self) -> bool:
@@ -583,15 +576,15 @@ class ASTNodeTypeNode(TypeNode):
 
         node = _resolve_symbol(root, self.typename)
         if node is None:
-            raise TypeResolutionError('Failed to resolve "{}" exposed as "{}"'.format(
-                self.ctype_name, self.typename
-            ))
+            raise TypeResolutionError(
+                f'Failed to resolve "{self.ctype_name}" exposed as "{self.typename}"'
+            )
         self._ast_node = weakref.proxy(node)
 
     def relative_typename(self, module: str) -> str:
-        assert self._ast_node is not None or self._module_name is not None, \
-            "'{}' exported as '{}' is not resolved yet".format(self.ctype_name,
-                                                               self.typename)
+        assert (
+            self._ast_node is not None or self._module_name is not None
+        ), f"'{self.ctype_name}' exported as '{self.typename}' is not resolved yet"
         if self._module_name is None:
             type_module = self._ast_node.parent  # type: ignore
             while type_module.node_type is not ASTNodeType.Namespace:
@@ -622,11 +615,9 @@ class AggregatedTypeNode(TypeNode):
                 item.resolve(root)
             except TypeResolutionError as e:
                 errors.append(str(e))
-        if len(errors) > 0:
+        if errors:
             raise TypeResolutionError(
-                'Failed to resolve one of "{}" items. Errors: {}'.format(
-                    self.full_typename, errors
-                )
+                f'Failed to resolve one of "{self.full_typename}" items. Errors: {errors}'
             )
 
     def __iter__(self):
@@ -722,15 +713,11 @@ class UnionTypeNode(ContainerTypeNode):
     """
     @property
     def type_format(self) -> str:
-        if TypeNode.compatible_to_runtime_usage:
-            return "_typing.Union[{}]"
-        return "{}"
+        return "_typing.Union[{}]" if TypeNode.compatible_to_runtime_usage else "{}"
 
     @property
     def types_separator(self) -> str:
-        if TypeNode.compatible_to_runtime_usage:
-            return ", "
-        return " | "
+        return ", " if TypeNode.compatible_to_runtime_usage else " | "
 
 
 class OptionalTypeNode(ContainerTypeNode):
@@ -810,23 +797,14 @@ class CallableTypeNode(AggregatedTypeNode):
 
     @property
     def typename(self) -> str:
-        return '_typing.Callable[[{}], {}]'.format(
-            ', '.join(arg.typename for arg in self.arg_types),
-            self.ret_type.typename
-        )
+        return f"_typing.Callable[[{', '.join(arg.typename for arg in self.arg_types)}], {self.ret_type.typename}]"
 
     @property
     def full_typename(self) -> str:
-        return '_typing.Callable[[{}], {}]'.format(
-            ', '.join(arg.full_typename for arg in self.arg_types),
-            self.ret_type.full_typename
-        )
+        return f"_typing.Callable[[{', '.join(arg.full_typename for arg in self.arg_types)}], {self.ret_type.full_typename}]"
 
     def relative_typename(self, module: str) -> str:
-        return '_typing.Callable[[{}], {}]'.format(
-            ', '.join(arg.relative_typename(module) for arg in self.arg_types),
-            self.ret_type.relative_typename(module)
-        )
+        return f"_typing.Callable[[{', '.join(arg.relative_typename(module) for arg in self.arg_types)}], {self.ret_type.relative_typename(module)}]"
 
     @property
     def required_definition_imports(self) -> Generator[str, None, None]:

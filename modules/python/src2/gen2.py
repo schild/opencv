@@ -269,9 +269,7 @@ class ClassProp(object):
 
     @property
     def export_name(self):
-        if self.name in python_reserved_keywords:
-            return self.name + "_"
-        return self.name
+        return f"{self.name}_" if self.name in python_reserved_keywords else self.name
 
 
 class ClassInfo(object):
@@ -307,10 +305,12 @@ class ClassInfo(object):
         if decl:
             bases = decl[1].split()[1:]
             if len(bases) > 1:
-                print("Note: Class %s has more than 1 base class (not supported by Python C extensions)" % (self.cname,))
+                print(
+                    f"Note: Class {self.cname} has more than 1 base class (not supported by Python C extensions)"
+                )
                 print("      Bases: ", " ".join(bases))
                 print("      Only the first base class will be used")
-                #return sys.exit(-1)
+                        #return sys.exit(-1)
             elif len(bases) == 1:
                 self.base = bases[0].strip(",")
                 if self.base.startswith("cv::"):
@@ -348,15 +348,15 @@ class ClassInfo(object):
 
     @property
     def full_export_scope_name(self):
-        return "cv." + self.export_scope_name if len(self.export_scope_name) else "cv"
+        return f"cv.{self.export_scope_name}" if len(self.export_scope_name) else "cv"
 
     @property
     def full_export_name(self):
-        return self.full_export_scope_name + "." + self.export_name
+        return f"{self.full_export_scope_name}.{self.export_name}"
 
     @property
     def full_original_name(self):
-        return self.original_scope_name + "." + self.original_name
+        return f"{self.original_scope_name}.{self.original_name}"
 
     @property
     def has_export_alias(self):
@@ -383,10 +383,7 @@ class ClassInfo(object):
         sorted_props = [(p.name, p) for p in self.props]
         sorted_props.sort()
 
-        access_op = "->"
-        if self.issimple:
-            access_op = "."
-
+        access_op = "." if self.issimple else "->"
         for pname, p in sorted_props:
             if self.isalgorithm:
                 getset_code.write(gen_template_get_prop_algo.substitute(name=self.name, cname=self.cname, member=pname, membertype=p.tp, access=access_op))
@@ -404,9 +401,7 @@ class ClassInfo(object):
         methods_code = StringIO()
         methods_inits = StringIO()
 
-        sorted_methods = list(self.methods.items())
-        sorted_methods.sort()
-
+        sorted_methods = sorted(self.methods.items())
         if self.constructor is not None:
             methods_code.write(self.constructor.gen_code(codegen))
 
@@ -414,13 +409,13 @@ class ClassInfo(object):
             methods_code.write(m.gen_code(codegen))
             methods_inits.write(m.get_tab_entry())
 
-        code = gen_template_type_impl.substitute(name=self.name,
-                                                 getset_code=getset_code.getvalue(),
-                                                 getset_inits=getset_inits.getvalue(),
-                                                 methods_code=methods_code.getvalue(),
-                                                 methods_inits=methods_inits.getvalue())
-
-        return code
+        return gen_template_type_impl.substitute(
+            name=self.name,
+            getset_code=getset_code.getvalue(),
+            getset_inits=getset_inits.getvalue(),
+            methods_code=methods_code.getvalue(),
+            methods_inits=methods_inits.getvalue(),
+        )
 
     def gen_def(self, codegen):
         all_classes = codegen.classes
@@ -432,16 +427,7 @@ class ClassInfo(object):
         if self.constructor is not None:
             constructor_name = self.constructor.get_wrapper_name()
 
-        return 'CVPY_TYPE({}, {}, {}, {}, {}, {}, "{}")\n'.format(
-            self.export_name,
-            self.class_id,
-            self.cname if self.issimple else "Ptr<{}>".format(self.cname),
-            self.original_name if self.issimple else "Ptr",
-            baseptr,
-            constructor_name,
-            # Leading dot is required to provide correct class naming
-            "." + self.export_scope_name if len(self.export_scope_name) > 0 else self.export_scope_name
-        )
+        return f'CVPY_TYPE({self.export_name}, {self.class_id}, {self.cname if self.issimple else f"Ptr<{self.cname}>"}, {self.original_name if self.issimple else "Ptr"}, {baseptr}, {constructor_name}, "{f".{self.export_scope_name}" if len(self.export_scope_name) > 0 else self.export_scope_name}")\n'
 
 
 def handle_ptr(tp):
@@ -474,19 +460,14 @@ class ArgInfo(object):
         self.enclosing_arg = enclosing_arg
 
     def __str__(self):
-        return 'ArgInfo("{}", tp="{}", default="{}", in={}, out={})'.format(
-            self.name, self.tp, self.defval, self.inputarg,
-            self.outputarg
-        )
+        return f'ArgInfo("{self.name}", tp="{self.tp}", default="{self.defval}", in={self.inputarg}, out={self.outputarg})'
 
     def __repr__(self):
         return str(self)
 
     @property
     def export_name(self):
-        if self.name in python_reserved_keywords:
-            return self.name + '_'
-        return self.name
+        return f'{self.name}_' if self.name in python_reserved_keywords else self.name
 
     @property
     def inputarg(self):
@@ -512,7 +493,7 @@ class ArgInfo(object):
     def full_name(self):
         if self.enclosing_arg is None:
             return self.name
-        return self.enclosing_arg.name + '.' + self.name
+        return f'{self.enclosing_arg.name}.{self.name}'
 
     def isbig(self):
         return self.tp in ["Mat", "vector_Mat",
@@ -521,8 +502,9 @@ class ArgInfo(object):
                            "UMat", "vector_UMat"] # or self.tp.startswith("vector")
 
     def crepr(self):
-        arg  = 0x01 if self.outputarg else 0x0
-        arg += 0x02 if self.arithm_op_src_arg else 0x0
+        arg = (0x01 if self.outputarg else 0x0) + (
+            0x02 if self.arithm_op_src_arg else 0x0
+        )
         return "ArgInfo(\"%s\", %d)" % (self.name, arg)
 
 
@@ -556,15 +538,15 @@ def find_argument_class_info(argument_type, function_namespace,
 
     # First try to find argument inside class scope of the function (if any)
     if function_class_name:
-        type_to_match = function_class_name + '_' + argument_type
+        type_to_match = f'{function_class_name}_{argument_type}'
         if type_to_match in possible_classes:
             return known_classes[type_to_match]
     else:
         type_to_match = argument_type
 
     # Trying to find argument type in the namespace of the function
-    type_to_match = '{}_{}'.format(
-        function_namespace.lstrip('cv.').replace('.', '_'), type_to_match
+    type_to_match = (
+        f"{function_namespace.lstrip('cv.').replace('.', '_')}_{type_to_match}"
     )
     if type_to_match in possible_classes:
         return known_classes[type_to_match]
@@ -594,17 +576,15 @@ class FuncVariant(object):
         self.args = []
         self.array_counters = {}
         for arg_decl in decl[3]:
-            assert len(arg_decl) == 4, \
-                'ArgInfo contract is violated. Arg declaration should contain:' \
-                '"arg_type", "name", "default_value", "modifiers". '\
-                'Got tuple: {}'.format(arg_decl)
+            assert (
+                len(arg_decl) == 4
+            ), f'ArgInfo contract is violated. Arg declaration should contain:"arg_type", "name", "default_value", "modifiers". Got tuple: {arg_decl}'
 
             ainfo = ArgInfo(atype=arg_decl[0], name=arg_decl[1],
                             default_value=arg_decl[2], modifiers=arg_decl[3])
             if ainfo.isarray and not ainfo.arraycvt:
                 c = ainfo.arraylen
-                c_arrlist = self.array_counters.get(c, [])
-                if c_arrlist:
+                if c_arrlist := self.array_counters.get(c, []):
                     c_arrlist.append(ainfo.name)
                 else:
                     self.array_counters[c] = [ainfo.name]
@@ -647,33 +627,29 @@ class FuncVariant(object):
             # If argument refers to the 'named arguments' structure - instead of
             # the argument put its properties
             if arg_class_info is not None and arg_class_info.is_parameters:
-                for prop in arg_class_info.props:
-                    # Convert property to ArgIfno and mark that argument is
-                    # a part of the parameters structure:
-                    arguments.append(
-                        ArgInfo(prop.tp, prop.name, prop.default_value,
-                                enclosing_arg=arg)
+                arguments.extend(
+                    ArgInfo(
+                        prop.tp, prop.name, prop.default_value, enclosing_arg=arg
                     )
+                    for prop in arg_class_info.props
+                )
             else:
                 arguments.append(arg)
         # Prevent names duplication after named arguments are merged
         # to the main arguments list
         argument_names = tuple(arg.name for arg in arguments)
-        assert len(set(argument_names)) == len(argument_names), \
-            "Duplicate arguments with names '{}' in function '{}'. "\
-            "Please, check named arguments used in function interface".format(
-                argument_names, self.name
-            )
+        assert len(set(argument_names)) == len(
+            argument_names
+        ), f"Duplicate arguments with names '{argument_names}' in function '{self.name}'. Please, check named arguments used in function interface"
 
         self.args = arguments
 
         for argno, a in enumerate(self.args):
             if a.name in self.array_counters:
                 continue
-            assert a.tp not in forbidden_arg_types, \
-                'Forbidden type "{}" for argument "{}" in "{}" ("{}")'.format(
-                    a.tp, a.name, self.name, self.classname
-                )
+            assert (
+                a.tp not in forbidden_arg_types
+            ), f'Forbidden type "{a.tp}" for argument "{a.name}" in "{self.name}" ("{self.classname}")'
 
             if a.tp in ignored_arg_types:
                 continue
@@ -684,17 +660,14 @@ class FuncVariant(object):
                 continue
             if not a.inputarg:
                 continue
-            if not a.defval:
-                arglist.append((a.name, argno))
-            else:
+            if a.defval:
                 firstoptarg = min(firstoptarg, len(arglist))
                 # if there are some array output parameters before the first default parameter, they
                 # are added as optional parameters before the first optional parameter
                 if outarr_list:
                     arglist += outarr_list
                     outarr_list = []
-                arglist.append((a.name, argno))
-
+            arglist.append((a.name, argno))
         if outarr_list:
             firstoptarg = min(firstoptarg, len(arglist))
             arglist += outarr_list
@@ -708,12 +681,12 @@ class FuncVariant(object):
         if self.rettype:
             outlist = [("retval", -1)] + outlist
         elif self.isconstructor:
-            assert outlist == []
+            assert not outlist
             outlist = [("self", -1)]
         if self.isconstructor:
             if classname.startswith("Cv"):
                 classname = classname[2:]
-            outstr = "<%s object>" % (classname,)
+            outstr = f"<{classname} object>"
         elif outlist:
             outstr = ", ".join([o[0] for o in outlist])
         else:
@@ -721,7 +694,7 @@ class FuncVariant(object):
 
         self.py_arg_str = argstr
         self.py_return_str = outstr
-        self.py_prototype = "%s(%s) -> %s" % (self.wname, argstr, outstr)
+        self.py_prototype = f"{self.wname}({argstr}) -> {outstr}"
         self.py_noptargs = noptargs
         self.py_arglist = arglist
         for _, argno in arglist:
@@ -751,7 +724,7 @@ class FuncInfo(object):
     def get_wrapper_name(self):
         name = self.name
         if self.classname:
-            classname = self.classname + "_"
+            classname = f"{self.classname}_"
             if "[" in name:
                 name = "getelem"
         else:
@@ -768,11 +741,8 @@ class FuncInfo(object):
             return "static int {fn_name}(pyopencv_{type_name}_t* self, PyObject* py_args, PyObject* kw)".format(
                     fn_name=full_fname, type_name=codegen.classes[self.classname].name)
 
-        if self.classname:
-            self_arg = "self"
-        else:
-            self_arg = ""
-        return "static PyObject* %s(PyObject* %s, PyObject* py_args, PyObject* kw)" % (full_fname, self_arg)
+        self_arg = "self" if self.classname else ""
+        return f"static PyObject* {full_fname}(PyObject* {self_arg}, PyObject* py_args, PyObject* kw)"
 
     def get_tab_entry(self):
         prototype_list = []
@@ -796,20 +766,15 @@ class FuncInfo(object):
             s = self.variants[idx].py_prototype
             p1 = s.find("(")
             p2 = s.rfind(")")
-            prototype_list = [s[:p1+1] + "[" + s[p1+1:p2] + "]" + s[p2:]]
+            prototype_list = [f"{s[:p1 + 1]}[{s[p1 + 1:p2]}]{s[p2:]}"]
 
-        # The final docstring will be: Each prototype, followed by
-        # their relevant doxygen comment
-        full_docstring = ""
-        for prototype, body in zip(prototype_list, docstring_list):
-            full_docstring += Template("$prototype\n$docstring\n\n\n\n").substitute(
+        full_docstring = "".join(
+            Template("$prototype\n$docstring\n\n\n\n").substitute(
                 prototype=prototype,
-                docstring='\n'.join(
-                    ['.   ' + line
-                     for line in body.split('\n')]
-                )
+                docstring='\n'.join([f'.   {line}' for line in body.split('\n')]),
             )
-
+            for prototype, body in zip(prototype_list, docstring_list)
+        )
         # Escape backslashes, newlines, and double quotes
         full_docstring = full_docstring.strip().replace("\\", "\\\\").replace('\n', '\\n').replace("\"", "\\\"")
         # Convert unicode chars to xml representation, but keep as string instead of bytes

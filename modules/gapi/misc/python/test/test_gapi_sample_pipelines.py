@@ -233,8 +233,7 @@ try:
     class GSquareImpl:
         @staticmethod
         def run(arr):
-            squares = [val**2 for val in arr]
-            return squares
+            return [val**2 for val in arr]
 
 
     class gapi_sample_pipelines(NewOpenCVTests):
@@ -568,18 +567,21 @@ try:
 
 
         def test_raise_in_kernel(self):
+
             @cv.gapi.op('custom.op', in_types=[cv.GMat, cv.GMat], out_types=[cv.GMat])
             class GAdd:
                 @staticmethod
                 def outMeta(desc0, desc1):
                     return desc0
 
+
+
             @cv.gapi.kernel(GAdd)
             class GAddImpl:
                 @staticmethod
                 def run(img0, img1):
                     raise Exception('Error')
-                    return img0 + img1
+
 
             g_in0 = cv.GMat()
             g_in1 = cv.GMat()
@@ -710,7 +712,7 @@ except unittest.SkipTest as e:
 
     class TestSkip(unittest.TestCase):
         def setUp(self):
-            self.skipTest('Skip tests: ' + message)
+            self.skipTest(f'Skip tests: {message}')
 
         def test_skip():
             pass

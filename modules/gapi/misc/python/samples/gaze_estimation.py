@@ -15,7 +15,7 @@ def weight_path(model_path):
     Path to weights file
     """
     assert model_path.endswith('.xml'), "Wrong topology path was provided"
-    return model_path[:-3] + 'bin'
+    return f'{model_path[:-3]}bin'
 
 
 def build_argparser():
@@ -81,9 +81,7 @@ def intersection(surface, rect):
     l_y = max(surface[1], rect[1])
     width = min(surface[0] + surface[2], rect[0] + rect[2]) - l_x
     height = min(surface[1] + surface[3], rect[1] + rect[3]) - l_y
-    if width < 0 or height < 0:
-        return (0, 0, 0, 0)
-    return (l_x, l_y, width, height)
+    return (0, 0, 0, 0) if width < 0 or height < 0 else (l_x, l_y, width, height)
 
 
 def process_landmarks(r_x, r_y, r_w, r_h, landmarks):
@@ -207,8 +205,7 @@ class GParseEyesImpl:
             rect, midpoint_r = eye_box(points[2], points[3])
             right_eyes.append(intersection(surface, rect))
 
-            midpoints.append(midpoint_l)
-            midpoints.append(midpoint_r)
+            midpoints.extend((midpoint_l, midpoint_r))
         return left_eyes, right_eyes, midpoints, lmarks
 
 

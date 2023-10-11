@@ -11,12 +11,12 @@ def fmt_bool(x):
     return ("true" if x else "false")
 
 def fmt_bin(base, prec, model):
-    return "%s/%s/%s/%s.xml" % (base, model, prec, model)
+    return f"{base}/{model}/{prec}/{model}.xml"
 
 ## The script itself #################################################
 ##
 if len(sys.argv) != 3:
-    print("Usage: %s /path/to/input/video /path/to/models" % sys.argv[0])
+    print(f"Usage: {sys.argv[0]} /path/to/input/video /path/to/models")
     exit(1)
 
 input_file_path   = sys.argv[1]
@@ -58,18 +58,19 @@ table={}
 
 # Collect the performance data
 for m in mods:              # Execution mode (trad/stream)
-    for u in ui:            # UI mode (on/off)
+    for u in ui:        # UI mode (on/off)
         for f in tgts:      # FD model
             for p in tgts:  # LPD model
-                cmd = [ app
-                      , ("--input=%s"  % input_file_path)   # input file
-                      , ("--faced=%s"  % f[0])              # FD device target
-                      , ("--facem=%s"  % fd_fmt_bin(f[1]))  # FD model @ precision
-                      , ("--platd=%s"  % p[0])              # LPD device target
-                      , ("--platm=%s"  % lpd_fmt_bin(p[1])) # LPD model @ precision
-                      , ("--trad=%s"   % fmt_bool(m[1]))    # Execution policy
-                      , ("--noshow=%s" % fmt_bool(u[1]))    # UI mode (show/no show)
-                      ]
+                cmd = [
+                    app,
+                    f"--input={input_file_path}",
+                    f"--faced={f[0]}",
+                    f"--facem={fd_fmt_bin(f[1])}",
+                    f"--platd={p[0]}",
+                    f"--platm={lpd_fmt_bin(p[1])}",
+                    f"--trad={fmt_bool(m[1])}",
+                    f"--noshow={fmt_bool(u[1])}",
+                ]
                 out = str(subprocess.check_output(cmd))
                 match = re.search('Processed [0-9]+ frames \(([0-9]+\.[0-9]+) FPS\)', out)
                 fps = float(match.group(1))
@@ -82,9 +83,9 @@ with open(output_file, 'w') as csv:
     # CSV header
     csv.write("FD,LPD,Serial(UI),Serial(no-UI),Streaming(UI),Streaming(no-UI),Effect(UI),Effect(no-UI)\n")
 
-    for f in tgts:      # FD model
+    for f in tgts:  # FD model
         for p in tgts:  # LPD model
-            row = "%s/%s,%s/%s" % (f[0], f[1], p[0], p[1])                # FD precision, LPD precision
+            row = f"{f[0]}/{f[1]},{p[0]}/{p[1]}"
             row += ",%f"    % table[Policy.Traditional,UI.With,   f,p]    # Serial/UI
             row += ",%f"    % table[Policy.Traditional,UI.Without,f,p]    # Serial/no UI
             row += ",%f"    % table[Policy.Streaming,  UI.With,   f,p]    # Streaming/UI

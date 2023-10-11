@@ -397,7 +397,7 @@ def _generate_enumeration_stub(enumeration_node: EnumerationNode,
 
     entries_extra_prefix = extra_export_prefix
     if enumeration_node.is_scoped:
-        entries_extra_prefix += enumeration_node.export_name + "_"
+        entries_extra_prefix += f"{enumeration_node.export_name}_"
     generated_constants_entries: List[str] = []
     for entry in enumeration_node.constants.values():
         generated_constants_entries.extend(
@@ -432,9 +432,7 @@ def _generate_function_stub(function_node: FunctionNode,
     # Function is a stub without any arguments information
     if not function_node.overloads:
         warnings.warn(
-            'Function node "{}" exported as "{}" has no overloads'.format(
-                function_node.full_name, function_node.full_export_name
-            )
+            f'Function node "{function_node.full_name}" exported as "{function_node.full_export_name}" has no overloads'
         )
         return
 
@@ -456,7 +454,7 @@ def _generate_function_stub(function_node: FunctionNode,
             annotated_arg = arg.name
             typename = arg.relative_typename(function_module_name)
             if typename is not None:
-                annotated_arg += ": " + typename
+                annotated_arg += f": {typename}"
             if arg.default_value is not None:
                 annotated_arg += " = ..."
             annotated_args.append(annotated_arg)
@@ -468,14 +466,17 @@ def _generate_function_stub(function_node: FunctionNode,
             ret_type = "None"
 
         output_stream.write(
-            "{decorators}"
-            "{indent}def {name}({args}) -> {ret_type}: ...\n".format(
-                decorators="\n".join(decorators) +
-                "\n" if len(decorators) > 0 else "",
-                name=function_node.export_name,
-                args=", ".join(annotated_args),
-                ret_type=ret_type,
-                indent=" " * indent
+            (
+                "{decorators}"
+                "{indent}def {name}({args}) -> {ret_type}: ...\n".format(
+                    decorators="\n".join(decorators) + "\n"
+                    if decorators
+                    else "",
+                    name=function_node.export_name,
+                    args=", ".join(annotated_args),
+                    ret_type=ret_type,
+                    indent=" " * indent,
+                )
             )
         )
     output_stream.write("\n")
@@ -523,7 +524,7 @@ def _generate_enums_from_classes_tree(class_node: ClassNode,
         bool: `True` if classes tree declares at least 1 enum, `False` otherwise.
     """
 
-    class_name_prefix = class_node.export_name + "_" + class_name_prefix
+    class_name_prefix = f"{class_node.export_name}_{class_name_prefix}"
     has_content = len(class_node.enumerations) > 0
     for enum_node in class_node.enumerations.values():
         _generate_enumeration_stub(enum_node, output_stream, indent,
@@ -546,10 +547,9 @@ def check_overload_presence(node: Union[NamespaceNode, ClassNode]) -> bool:
         bool: True if input node has at least 1 function with overload, False
             otherwise.
     """
-    for func_node in node.functions.values():
-        if len(func_node.overloads) > 1:
-            return True
-    return False
+    return any(
+        len(func_node.overloads) > 1 for func_node in node.functions.values()
+    )
 
 
 def _collect_required_imports(root: NamespaceNode) -> Collection[str]:
@@ -586,9 +586,7 @@ def _collect_required_imports(root: NamespaceNode) -> Collection[str]:
         for base in cls.bases:
             base_namespace = get_enclosing_namespace(base)  # type: ignore
             if base_namespace != root:
-                required_imports.add(
-                    "import " + base_namespace.full_export_name
-                )
+                required_imports.add(f"import {base_namespace.full_export_name}")
         if isinstance(cls, ProtocolClassNode):
             has_protocol = True
 
@@ -603,7 +601,7 @@ def _collect_required_imports(root: NamespaceNode) -> Collection[str]:
             _add_required_usage_imports(overload.return_type.type_node,
                                         required_imports)
 
-    root_import = "import " + root.full_export_name
+    root_import = f"import {root.full_export_name}"
     if root_import in required_imports:
         required_imports.remove(root_import)
 
@@ -776,7 +774,7 @@ def _generate_typing_module(root: NamespaceNode, output_path: Path) -> None:
 
         # Strip module prefix from aliased types
         aliases[typename] = alias_node.value.full_typename.replace(
-            root.export_name + ".typing.", ""
+            f"{root.export_name}.typing.", ""
         )
         if alias_node.doc is not None:
             aliases[typename] += f'\n"""{alias_node.doc}"""'
