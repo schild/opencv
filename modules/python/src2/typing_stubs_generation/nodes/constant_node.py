@@ -26,6 +26,4 @@ class ConstantNode(ASTNode):
         return self._value_type
 
     def __str__(self) -> str:
-        return "Constant('{}' exported as '{}': {})".format(
-            self.name, self.export_name, self.value
-        )
+        return f"Constant('{self.name}' exported as '{self.export_name}': {self.value})"

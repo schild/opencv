@@ -63,7 +63,7 @@ class CppHeaderParser(object):
                 sys.exit(-1)
             if t == '(':
                 balance += 1
-            if t == ')':
+            elif t == ')':
                 balance -= 1
                 if balance == 0:
                     break
@@ -96,7 +96,7 @@ class CppHeaderParser(object):
             isarray = True
             macro_arg, npos3 = self.get_macro_arg(arg_str, npos)
 
-            modlist.append("/A " + macro_arg)
+            modlist.append(f"/A {macro_arg}")
             arg_str = arg_str[:npos] + arg_str[npos3+1:]
 
         npos = arg_str.find("CV_CUSTOM_CARRAY")
@@ -104,7 +104,7 @@ class CppHeaderParser(object):
             isarray = True
             macro_arg, npos3 = self.get_macro_arg(arg_str, npos)
 
-            modlist.append("/CA " + macro_arg)
+            modlist.append(f"/CA {macro_arg}")
             arg_str = arg_str[:npos] + arg_str[npos3+1:]
 
         npos = arg_str.find("const")
@@ -133,7 +133,7 @@ class CppHeaderParser(object):
             t, npos = self.find_next_token(arg_str, [" ", "&", "*", "<", ">", ","], npos)
             w = arg_str[word_start:npos].strip()
             if w == "operator":
-                word_list.append("operator " + arg_str[npos:].strip())
+                word_list.append(f"operator {arg_str[npos:].strip()}")
                 break
             if w not in ["", "const"]:
                 word_list.append(w)
@@ -164,7 +164,7 @@ class CppHeaderParser(object):
             elif w == "<":
                 arg_type += "_"
                 angle_stack.append(0)
-            elif w == "," or w == '>':
+            elif w in [",", '>']:
                 if not angle_stack:
                     print("Error at %s:%d: argument contains ',' or '>' not within template arguments" % (self.hname, self.lineno))
                     sys.exit(-1)
@@ -181,7 +181,7 @@ class CppHeaderParser(object):
                 arg_type += w
                 angle_stack[-1] += 1
             elif arg_type == "struct":
-                arg_type += " " + w
+                arg_type += f" {w}"
             elif arg_type and arg_type != "~":
                 arg_name = " ".join(word_list[wi:])
                 break
@@ -191,7 +191,7 @@ class CppHeaderParser(object):
 
         counter_str = ""
         add_star = False
-        if ("[" in arg_name) and not ("operator" in arg_str):
+        if "[" in arg_name and "operator" not in arg_str:
             #print arg_str
             p1 = arg_name.find("[")
             p2 = arg_name.find("]",p1+1)
@@ -202,7 +202,7 @@ class CppHeaderParser(object):
             if counter_str == "":
                 counter_str = "?"
             if not isarray:
-                modlist.append("/A " + counter_str.strip())
+                modlist.append(f"/A {counter_str.strip()}")
             arg_name = arg_name[:p1]
             add_star = True
 
@@ -210,7 +210,7 @@ class CppHeaderParser(object):
             if arg_type.startswith("operator"):
                 arg_type, arg_name = "", arg_type
             else:
-                arg_name = "arg" + str(argno)
+                arg_name = f"arg{str(argno)}"
                 argno += 1
 
         while arg_type.endswith("_end_"):
@@ -237,12 +237,21 @@ class CppHeaderParser(object):
                 prev_val_delta += 1
                 val = ""
                 if prev_val:
-                    val = prev_val + "+"
+                    val = f"{prev_val}+"
                 val += str(prev_val_delta)
             else:
                 prev_val_delta = 0
                 prev_val = val = pv[1].strip()
-            decl.append(["const " + self.get_dotted_name(pv[0].strip()), val, [], [], None, ""])
+            decl.append(
+                [
+                    f"const {self.get_dotted_name(pv[0].strip())}",
+                    val,
+                    [],
+                    [],
+                    None,
+                    "",
+                ]
+            )
         return decl
 
     def parse_class_decl(self, decl_str):
@@ -261,14 +270,13 @@ class CppHeaderParser(object):
             modlist.append("/Simple")
         if "CV_EXPORTS_W_PARAMS" in l:
             l = l.replace("CV_EXPORTS_W_PARAMS", "")
-            modlist.append("/Map")
-            modlist.append("/Params")
+            modlist.extend(("/Map", "/Params"))
         npos = l.find("CV_EXPORTS_AS")
         if npos < 0:
             npos = l.find('CV_WRAP_AS')
         if npos >= 0:
             macro_arg, npos3 = self.get_macro_arg(l, npos)
-            modlist.append("=" + macro_arg)
+            modlist.append(f"={macro_arg}")
             l = l[:npos] + l[npos3+1:]
 
         l = self.batch_replace(l, [("CV_EXPORTS_W", ""), ("CV_EXPORTS", ""), ("public virtual ", " "), ("public ", " "), ("::", ".")]).strip()
@@ -298,13 +306,12 @@ class CppHeaderParser(object):
             fdecl = fdecl.replace("  ", " ")
         fname = fdecl[:fdecl.find("(")].strip()
         fnpos = fname.rfind(" ")
-        if fnpos < 0:
-            fnpos = 0
+        fnpos = max(fnpos, 0)
         fname = fname[fnpos:].strip()
         rettype = fdecl[:fnpos].strip()
 
         if rettype.endswith("operator"):
-            fname = ("operator " + fname).strip()
+            fname = f"operator {fname}".strip()
             rettype = rettype[:rettype.rfind("operator")].strip()
             if rettype.endswith("::"):
                 rpos = rettype.rfind(" ")
@@ -330,7 +337,7 @@ class CppHeaderParser(object):
 
         args0str = fdecl[apos+1:fdecl.rfind(")")].strip()
 
-        if args0str != "" and args0str != "void":
+        if args0str not in ["", "void"]:
             args0str = re.sub(r"\([^)]*\)", lambda m: m.group(0).replace(',', "@comma@"), args0str)
             args0 = args0str.split(",")
 
@@ -367,7 +374,7 @@ class CppHeaderParser(object):
                     aname = arg[pos+1:].strip()
                     atype = arg[:pos+1].strip()
                     if aname.endswith("&") or aname.endswith("*") or (aname in ["int", "String", "Mat"]):
-                        atype = (atype + " " + aname).strip()
+                        atype = f"{atype} {aname}".strip()
                         aname = ""
                 else:
                     atype = arg

@@ -84,15 +84,13 @@ class PatternMaker:
         rad = diam / 2
         cw_point = ((0, 0), (diam, 0), (diam, diam), (0, diam))
         mid_cw_point = ((0, rad), (rad, 0), (diam, rad), (rad, diam))
-        res_str = "M{},{} ".format(x + mid_cw_point[0][0], y + mid_cw_point[0][1])
+        res_str = f"M{x + mid_cw_point[0][0]},{y + mid_cw_point[0][1]} "
         n = len(cw_point)
         for i in range(n):
             if corners[i] == "right":
-                res_str += "L{},{} L{},{} ".format(x + cw_point[i][0], y + cw_point[i][1],
-                                                   x + mid_cw_point[(i + 1) % n][0], y + mid_cw_point[(i + 1) % n][1])
+                res_str += f"L{x + cw_point[i][0]},{y + cw_point[i][1]} L{x + mid_cw_point[(i + 1) % n][0]},{y + mid_cw_point[(i + 1) % n][1]} "
             elif corners[i] == "round":
-                res_str += "A{},{} 0,0,1 {},{} ".format(rad, rad, x + mid_cw_point[(i + 1) % n][0],
-                                                        y + mid_cw_point[(i + 1) % n][1])
+                res_str += f"A{rad},{rad} 0,0,1 {x + mid_cw_point[(i + 1) % n][0]},{y + mid_cw_point[(i + 1) % n][1]} "
             else:
                 raise TypeError("unknown corner type")
         return res_str
@@ -187,7 +185,9 @@ class PatternMaker:
 
         ch_ar_border = (self.square_size - self.aruco_marker_size)/2
         if ch_ar_border < side*0.7:
-            print("Marker border {} is less than 70% of ArUco pin size {}. Please increase --square_size or decrease --marker_size for stable board detection".format(ch_ar_border, int(side)))
+            print(
+                f"Marker border {ch_ar_border} is less than 70% of ArUco pin size {int(side)}. Please increase --square_size or decrease --marker_size for stable board detection"
+            )
         marker_id = 0
         for y in range(0, self.rows):
             for x in range(0, self.cols):
@@ -197,7 +197,9 @@ class PatternMaker:
                                  height=spacing, fill="black", stroke="none")
                     self.g.append(square)
                 else:
-                    img_mark = self._create_marker_bits(markerSize_bits, dictionary["marker_"+str(marker_id)])
+                    img_mark = self._create_marker_bits(
+                        markerSize_bits, dictionary[f"marker_{str(marker_id)}"]
+                    )
                     marker_id +=1
                     x_pos = x * spacing + xspacing
                     y_pos = y * spacing + yspacing
@@ -264,7 +266,7 @@ def main():
     aruco_marker_size = args.aruco_marker_size
     dict_file = args.dict_file
 
-    if 'page_width' and 'page_height' in args:
+    if 'page_height' in args:
         page_width = args.page_width
         page_height = args.page_height
     else:
@@ -277,13 +279,15 @@ def main():
     markers = None
     if p_type == "radon_checkerboard" and "markers" in args:
         if len(args.markers) % 2 == 1:
-            raise ValueError("The length of the markers array={} must be even".format(len(args.markers)))
+            raise ValueError(
+                f"The length of the markers array={len(args.markers)} must be even"
+            )
         markers = set()
         for x, y in zip(args.markers[::2], args.markers[1::2]):
             if x in range(0, columns) and y in range(0, rows):
                 markers.add((x, y))
             else:
-                raise ValueError("The marker {},{} is outside the checkerboard".format(x, y))
+                raise ValueError(f"The marker {x},{y} is outside the checkerboard")
 
     if p_type == "charuco_board" and aruco_marker_size >= square_size:
         raise ValueError("ArUco markers size must be smaller than square size")

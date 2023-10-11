@@ -260,8 +260,9 @@ class aruco_objdetect_test(NewOpenCVTests):
 
         list_gold_corners = []
         for i in range(1, board_size[0]):
-            for j in range(1, board_size[1]):
-                list_gold_corners.append((j*cell_size, i*cell_size))
+            list_gold_corners.extend(
+                (j * cell_size, i * cell_size) for j in range(1, board_size[1])
+            )
         gold_corners = np.array(list_gold_corners, dtype=np.float32)
 
         charucoCorners, charucoIds, markerCorners, markerIds = charuco_detector.detectBoard(image)

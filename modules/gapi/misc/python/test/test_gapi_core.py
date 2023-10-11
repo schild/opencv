@@ -43,9 +43,12 @@ try:
             for pkg_name, pkg in pkgs:
                 actual = comp.apply(cv.gin(in1, in2), args=cv.gapi.compile_args(pkg))
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected, actual, cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
-                self.assertEqual(expected.dtype, actual.dtype, 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(expected, actual, cv.NORM_INF),
+                    f'Failed on {pkg_name} backend',
+                )
+                self.assertEqual(expected.dtype, actual.dtype, f'Failed on {pkg_name} backend')
 
 
         def test_add_uint8(self):
@@ -65,9 +68,12 @@ try:
             for pkg_name, pkg in pkgs:
                 actual = comp.apply(cv.gin(in1, in2), args=cv.gapi.compile_args(pkg))
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected, actual, cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
-                self.assertEqual(expected.dtype, actual.dtype, 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(expected, actual, cv.NORM_INF),
+                    f'Failed on {pkg_name} backend',
+                )
+                self.assertEqual(expected.dtype, actual.dtype, f'Failed on {pkg_name} backend')
 
 
         def test_mean(self):
@@ -85,8 +91,11 @@ try:
             for pkg_name, pkg in pkgs:
                 actual = comp.apply(cv.gin(in_mat), args=cv.gapi.compile_args(pkg))
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected, actual, cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(expected, actual, cv.NORM_INF),
+                    f'Failed on {pkg_name} backend',
+                )
 
 
         def test_split3(self):
@@ -105,9 +114,12 @@ try:
                 actual = comp.apply(cv.gin(in_mat), args=cv.gapi.compile_args(pkg))
                 # Comparison
                 for e, a in zip(expected, actual):
-                    self.assertEqual(0.0, cv.norm(e, a, cv.NORM_INF),
-                                     'Failed on ' + pkg_name + ' backend')
-                    self.assertEqual(e.dtype, a.dtype, 'Failed on ' + pkg_name + ' backend')
+                    self.assertEqual(
+                        0.0,
+                        cv.norm(e, a, cv.NORM_INF),
+                        f'Failed on {pkg_name} backend',
+                    )
+                    self.assertEqual(e.dtype, a.dtype, f'Failed on {pkg_name} backend')
 
 
         def test_threshold(self):
@@ -127,12 +139,19 @@ try:
             for pkg_name, pkg in pkgs:
                 actual_mat, actual_thresh = comp.apply(cv.gin(in_mat, maxv), args=cv.gapi.compile_args(pkg))
                 # Comparison
-                self.assertEqual(0.0, cv.norm(expected_mat, actual_mat, cv.NORM_INF),
-                                 'Failed on ' + pkg_name + ' backend')
-                self.assertEqual(expected_mat.dtype, actual_mat.dtype,
-                                 'Failed on ' + pkg_name + ' backend')
-                self.assertEqual(expected_thresh, actual_thresh[0],
-                                 'Failed on ' + pkg_name + ' backend')
+                self.assertEqual(
+                    0.0,
+                    cv.norm(expected_mat, actual_mat, cv.NORM_INF),
+                    f'Failed on {pkg_name} backend',
+                )
+                self.assertEqual(
+                    expected_mat.dtype,
+                    actual_mat.dtype,
+                    f'Failed on {pkg_name} backend',
+                )
+                self.assertEqual(
+                    expected_thresh, actual_thresh[0], f'Failed on {pkg_name} backend'
+                )
 
 
         def test_kmeans(self):
@@ -227,7 +246,7 @@ except unittest.SkipTest as e:
 
     class TestSkip(unittest.TestCase):
         def setUp(self):
-            self.skipTest('Skip tests: ' + message)
+            self.skipTest(f'Skip tests: {message}')
 
         def test_skip():
             pass

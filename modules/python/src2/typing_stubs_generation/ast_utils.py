@@ -23,11 +23,7 @@ class SymbolName(NamedTuple):
     name: str
 
     def __str__(self) -> str:
-        return '(namespace="{}", classes="{}", name="{}")'.format(
-            '::'.join(self.namespaces),
-            '::'.join(self.classes),
-            self.name
-        )
+        return f"""(namespace="{'::'.join(self.namespaces)}", classes="{'::'.join(self.classes)}", name="{self.name}")"""
 
     def __repr__(self) -> str:
         return str(self)
@@ -109,35 +105,28 @@ def find_scope(root: NamespaceNode, symbol_name: SymbolName,
 '(namespace="cv::gapi", classes="GOpaque", name="function")', \
 because 'GOpaque' class is not registered yet
     """
-    assert isinstance(root, NamespaceNode), \
-        'Wrong hierarchy root type: {}'.format(type(root))
+    assert isinstance(
+        root, NamespaceNode
+    ), f'Wrong hierarchy root type: {type(root)}'
 
-    assert symbol_name.namespaces[0] == root.name, \
-        "Trying to find scope for '{}' with root namespace different from: '{}'".format(
-            symbol_name, root.name
-    )
+    assert (
+        symbol_name.namespaces[0] == root.name
+    ), f"Trying to find scope for '{symbol_name}' with root namespace different from: '{root.name}'"
 
     scope: Union[NamespaceNode, ClassNode] = root
     for namespace in symbol_name.namespaces[1:]:
-        if namespace not in scope.namespaces:  # type: ignore
-            if not create_missing_namespaces:
-                raise ScopeNotFoundError(
-                    "Can't find a scope for '{}', with '{}', because namespace"
-                    " '{}' is not created yet and `create_missing_namespaces`"
-                    " flag is set to False".format(
-                        symbol_name.name, symbol_name, namespace
-                    )
-                )
-            scope = scope.add_namespace(namespace)  # type: ignore
-        else:
+        if namespace in scope.namespaces:
             scope = scope.namespaces[namespace]  # type: ignore
+        elif not create_missing_namespaces:
+            raise ScopeNotFoundError(
+                f"Can't find a scope for '{symbol_name.name}', with '{symbol_name}', because namespace '{namespace}' is not created yet and `create_missing_namespaces` flag is set to False"
+            )
+        else:
+            scope = scope.add_namespace(namespace)  # type: ignore
     for class_name in symbol_name.classes:
         if class_name not in scope.classes:
             raise ScopeNotFoundError(
-                "Can't find a scope for '{}', with '{}', because '{}' "
-                "class is not registered yet".format(
-                    symbol_name.name, symbol_name, class_name
-                )
+                f"Can't find a scope for '{symbol_name.name}', with '{symbol_name}', because '{class_name}' class is not registered yet"
             )
         scope = scope.classes[class_name]
     return scope
@@ -147,9 +136,7 @@ def find_class_node(root: NamespaceNode, class_symbol: SymbolName,
                     create_missing_namespaces: bool = False) -> ClassNode:
     scope = find_scope(root, class_symbol, create_missing_namespaces)
     if class_symbol.name not in scope.classes:
-        raise SymbolNotFoundError(
-            "Can't find {} in its scope".format(class_symbol)
-        )
+        raise SymbolNotFoundError(f"Can't find {class_symbol} in its scope")
     return scope.classes[class_symbol.name]
 
 
@@ -157,9 +144,7 @@ def find_function_node(root: NamespaceNode, function_symbol: SymbolName,
                        create_missing_namespaces: bool = False) -> FunctionNode:
     scope = find_scope(root, function_symbol, create_missing_namespaces)
     if function_symbol.name not in scope.functions:
-        raise SymbolNotFoundError(
-            "Can't find {} in its scope".format(function_symbol)
-        )
+        raise SymbolNotFoundError(f"Can't find {function_symbol} in its scope")
     return scope.functions[function_symbol.name]
 
 
@@ -372,10 +357,9 @@ def get_enclosing_namespace(
     """
     parent_node = node.parent
     while not isinstance(parent_node, NamespaceNode):
-        assert parent_node is not None, \
-            "Can't find enclosing namespace for '{}' known as: '{}'".format(
-                node.full_export_name, node.native_name
-            )
+        assert (
+            parent_node is not None
+        ), f"Can't find enclosing namespace for '{node.full_export_name}' known as: '{node.native_name}'"
         if class_node_callback:
             class_node_callback(cast(ClassNode, parent_node))
         parent_node = parent_node.parent
@@ -397,7 +381,7 @@ def get_enum_module_and_export_name(enum_node: EnumerationNode) -> Tuple[str, st
 
     def update_full_export_name(class_node: ClassNode) -> None:
         nonlocal enum_export_name
-        enum_export_name = class_node.export_name + "_" + enum_export_name
+        enum_export_name = f"{class_node.export_name}_{enum_export_name}"
 
     namespace_node = get_enclosing_namespace(enum_node,
                                              update_full_export_name)

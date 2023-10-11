@@ -48,18 +48,18 @@ class ASTNode:
 
         FORBIDDEN_SYMBOLS = ";,*&#/|\\@!()[]^% "
         for forbidden_symbol in FORBIDDEN_SYMBOLS:
-            assert forbidden_symbol not in name, \
-                "Invalid node identifier '{}' - contains 1 or more "\
-                "forbidden symbols: ({})".format(name, FORBIDDEN_SYMBOLS)
+            assert (
+                forbidden_symbol not in name
+            ), f"Invalid node identifier '{name}' - contains 1 or more forbidden symbols: ({FORBIDDEN_SYMBOLS})"
 
-        assert ":" not in name, \
-            "Name '{}' contains C++ scope symbols (':'). Convert the name to "\
-            "Python style and create appropriate parent nodes".format(name)
+        assert (
+            ":" not in name
+        ), f"Name '{name}' contains C++ scope symbols (':'). Convert the name to Python style and create appropriate parent nodes"
 
         assert "." not in name, \
-            "Trying to create a node with '.' symbols in its name ({}). " \
-            "Dots are supposed to be a scope delimiters, so create all nodes in ('{}') " \
-            "and add '{}' as a last child node".format(
+                "Trying to create a node with '.' symbols in its name ({}). " \
+                "Dots are supposed to be a scope delimiters, so create all nodes in ('{}') " \
+                "and add '{}' as a last child node".format(
                 name,
                 "->".join(name.split('.')[:-1]),
                 name.rsplit('.', maxsplit=1)[-1]
@@ -73,9 +73,7 @@ class ASTNode:
         self._children: DefaultDict[ASTNodeType, NameToNode] = defaultdict(dict)
 
     def __str__(self) -> str:
-        return "{}('{}' exported as '{}')".format(
-            self.node_type.name, self.name, self.export_name
-        )
+        return f"{self.node_type.name}('{self.name}' exported as '{self.export_name}')"
 
     def __repr__(self) -> str:
         return str(self)
@@ -124,9 +122,9 @@ class ASTNode:
 
     @parent.setter
     def parent(self, value: Optional["ASTNode"]) -> None:
-        assert value is None or isinstance(value, ASTNode), \
-            "ASTNode.parent should be None or another ASTNode, " \
-            "but got: {}".format(type(value))
+        assert value is None or isinstance(
+            value, ASTNode
+        ), f"ASTNode.parent should be None or another ASTNode, but got: {type(value)}"
 
         if value is not None:
             value.__check_child_before_add(self, self.name)
@@ -150,12 +148,9 @@ class ASTNode:
             f"'{self.node_type_name}' that can't have children nodes"
         )
 
-        assert child.node_type in self.children_types, \
-            "Trying to add child node '{}' to node '{}' " \
-            "that supports only ({}) as its children types".format(
-                child.node_type_name, self.node_type_name,
-                ",".join(t.name for t in self.children_types)
-            )
+        assert (
+            child.node_type in self.children_types
+        ), f"""Trying to add child node '{child.node_type_name}' to node '{self.node_type_name}' that supports only ({",".join(t.name for t in self.children_types)}) as its children types"""
 
         if self._find_child(child.node_type, name) is not None:
             raise ValueError(
@@ -214,7 +209,7 @@ class ASTNode:
         def get_name(node: ASTNode) -> str:
             return getattr(node, property_name)
 
-        assert property_name in ('name', 'export_name'), 'Invalid name property'
+        assert property_name in {'name', 'export_name'}, 'Invalid name property'
 
         name_parts = [get_name(self), ]
         parent = self.parent

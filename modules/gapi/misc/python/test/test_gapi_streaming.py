@@ -299,9 +299,9 @@ try:
                 if not has_frame:
                     break
 
-                if not out1 is None:
+                if out1 is not None:
                     out_counter += 1
-                if not out2 is None:
+                if out2 is not None:
                     desync_out_counter += 1
                 else:
                     none_counter += 1
@@ -362,7 +362,7 @@ try:
             try:
                 return cv.gapi.wip.make_gst_src(gstpipeline)
             except cv.error as e:
-                if str(e).find('Built without GStreamer support!') == -1:
+                if 'Built without GStreamer support!' not in str(e):
                     raise e
                 else:
                     raise unittest.SkipTest(str(e))
@@ -410,8 +410,11 @@ try:
 
             path = self.find_file('highgui/video/big_buck_bunny.avi',
                                   [os.environ['OPENCV_TEST_DATA_PATH']])
-            gstpipeline = """filesrc location=""" + path + """ ! decodebin ! videoconvert !
+            gstpipeline = (
+                f"""filesrc location={path}"""
+                + """ ! decodebin ! videoconvert !
                              videoscale ! video/x-raw,format=NV12 ! appsink"""
+            )
 
             # G-API pipeline
             g_in = cv.GMat()
@@ -447,12 +450,12 @@ try:
             try:
                 return cv.gapi.wip.GStreamerPipeline(gstpipeline)
             except cv.error as e:
-                if str(e).find('Built without GStreamer support!') == -1:
+                if 'Built without GStreamer support!' not in str(e):
                     raise e
                 else:
                     raise unittest.SkipTest(str(e))
             except SystemError as e:
-                raise unittest.SkipTest(str(e) + ", caused by " + str(e.__cause__))
+                raise unittest.SkipTest(f"{str(e)}, caused by {str(e.__cause__)}")
 
 
         def test_gst_multiple_sources(self):
@@ -494,12 +497,18 @@ try:
 
             path = self.find_file('highgui/video/big_buck_bunny.avi',
                                   [os.environ['OPENCV_TEST_DATA_PATH']])
-            gstpipeline1 = """filesrc location=""" + path + """ ! decodebin ! videoconvert !
+            gstpipeline1 = (
+                f"""filesrc location={path}"""
+                + """ ! decodebin ! videoconvert !
                               videoscale ! video/x-raw,format=NV12 ! appsink"""
-            gstpipeline2 = """filesrc location=""" + path + """ ! decodebin !
+            )
+            gstpipeline2 = (
+                f"""filesrc location={path}"""
+                + """ ! decodebin !
                               videoflip method=clockwise ! videoconvert ! videoscale !
                               video/x-raw,format=NV12 ! appsink"""
-            gstpipeline_gapi = gstpipeline1 + ' name=sink1 ' + gstpipeline2 + ' name=sink2'
+            )
+            gstpipeline_gapi = f'{gstpipeline1} name=sink1 {gstpipeline2} name=sink2'
 
             # G-API pipeline
             g_in1 = cv.GMat()
@@ -547,7 +556,7 @@ except unittest.SkipTest as e:
 
     class TestSkip(unittest.TestCase):
         def setUp(self):
-            self.skipTest('Skip tests: ' + message)
+            self.skipTest(f'Skip tests: {message}')
 
         def test_skip():
             pass

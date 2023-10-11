@@ -18,10 +18,7 @@ def main():
     py_typed_path = os.path.join(args.stubs_dir, 'py.typed')
     if not os.path.isfile(py_typed_path):
         warnings.warn(
-            '{} is missing, it means that typings stubs generation is either '
-            'failed or has been skipped. Ensure that Python 3.6+ is used for '
-            'build and there is no warnings during Python source code '
-            'generation phase.'.format(py_typed_path)
+            f'{py_typed_path} is missing, it means that typings stubs generation is either failed or has been skipped. Ensure that Python 3.6+ is used for build and there is no warnings during Python source code generation phase.'
         )
         return
     copy_tree(args.stubs_dir, args.output_dir)

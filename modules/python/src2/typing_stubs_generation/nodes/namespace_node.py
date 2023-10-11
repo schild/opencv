@@ -102,12 +102,7 @@ class NamespaceNode(ASTNode):
                         raise
             except TypeResolutionError as e:
                 errors.append(str(e))
-        if len(errors) > 0:
+        if errors:
             raise TypeResolutionError(
-                'Failed to resolve "{}" namespace against "{}". '
-                'Errors: {}'.format(
-                    self.full_export_name,
-                    root if root is None else root.full_export_name,
-                    errors
-                )
+                f'Failed to resolve "{self.full_export_name}" namespace against "{root if root is None else root.full_export_name}". Errors: {errors}'
             )

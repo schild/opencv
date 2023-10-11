@@ -41,10 +41,7 @@ if sys.version_info >= (3, 6):
                 @functools.wraps(func)
                 def wrapped_func(*args, **kwargs):
                     if self.has_failure:
-                        if ret_type_on_failure is None:
-                            return None
-                        return ret_type_on_failure()
-
+                        return None if ret_type_on_failure is None else ret_type_on_failure()
                     try:
                         ret_type = func(*args, **kwargs)
                     except Exception:
@@ -54,15 +51,10 @@ if sys.version_info >= (3, 6):
                                 traceback.format_exc()
                             )
                         )
-                        if ret_type_on_failure is None:
-                            return None
-                        return ret_type_on_failure()
+                        return None if ret_type_on_failure is None else ret_type_on_failure()
                     return ret_type
 
-                if self.exceptions_as_warnings:
-                    return wrapped_func
-                else:
-                    return original_func
+                return wrapped_func if self.exceptions_as_warnings else original_func
 
             if original_func:
                 return parametrized_wrapper(original_func)
@@ -99,9 +91,9 @@ if sys.version_info >= (3, 6):
         def add_enum(self, symbol_name, is_scoped_enum, entries):
             # type: (SymbolName, bool, Dict[str, str]) -> None
             if symbol_name in self.exported_enums:
-                assert symbol_name.name == "<unnamed>", \
-                    "Trying to export 2 enums with same symbol " \
-                    "name: {}".format(symbol_name)
+                assert (
+                    symbol_name.name == "<unnamed>"
+                ), f"Trying to export 2 enums with same symbol name: {symbol_name}"
                 enumeration_node = self.exported_enums[symbol_name]
             else:
                 enumeration_node = EnumerationNode(symbol_name.name,
@@ -157,8 +149,7 @@ else:
         def __init__(self):
             self.type_hints_ignored_functions = set()  # type: Set[str]
             print(
-                'WARNING! Typing stubs can be generated only with Python 3.6 or higher. '
-                'Current version {}'.format(sys.version_info)
+                f'WARNING! Typing stubs can be generated only with Python 3.6 or higher. Current version {sys.version_info}'
             )
 
         def add_enum(self, symbol_name, is_scoped_enum, entries):

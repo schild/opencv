@@ -21,7 +21,7 @@ def test_error_no_config_specified():
 def test_error_no_config_exists():
     cfg_file = 'not_existing_cfg.yml'
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert 'Failed to open config file: not_existing_cfg.yml' in out
 
@@ -30,7 +30,7 @@ def test_error_work_time_not_positive():
     cfg_file = """\"%YAML:1.0
 work_time: -1\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('work_time must be positive')
 
@@ -39,7 +39,7 @@ def test_error_no_pipelines():
     cfg_file = """\"%YAML:1.0
 work_time: 1000\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Config must contain field: Pipelines')
 
@@ -49,7 +49,7 @@ def test_error_pipelines_node_not_map():
 work_time: 1000
 Pipelines:\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Pipelines field must be a map')
 
@@ -60,7 +60,7 @@ work_time: 1000
 Pipelines:
   PL1:\" """
 
-    exec_str = '{} --cfg={} --exec_list=PL2'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file} --exec_list=PL2'
     out = get_output(exec_str)
     assert out.startswith('Pipelines must contain field: PL2')
 
@@ -72,7 +72,7 @@ Pipelines:
   PL1:
     queue_capacity: 1\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('PL1 must contain field: source')
 
@@ -84,7 +84,7 @@ Pipelines:
   PL1:
     source:\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('source must contain field: name')
 
@@ -97,7 +97,7 @@ Pipelines:
     source:
       name: 'Src'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('source must contain field: latency')
 
@@ -111,7 +111,7 @@ Pipelines:
       name: 'Src'
       latency: 20\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('source must contain field: output')
 
@@ -126,7 +126,7 @@ Pipelines:
       latency: 20
       output:\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('output must contain field: dims')
 
@@ -142,7 +142,7 @@ Pipelines:
       output:
         dims: [1,2,3,4]\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('output must contain field: precision')
 
@@ -159,7 +159,7 @@ Pipelines:
         dims: [1,2,3,4]
         precision: 'U8'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('PL1 must contain field: nodes')
 
@@ -177,7 +177,7 @@ Pipelines:
         precision: 'U8'
     nodes:\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('nodes in PL1 must be a sequence')
 
@@ -196,7 +196,7 @@ Pipelines:
     nodes:
       -\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('node must contain field: name')
 
@@ -215,7 +215,7 @@ Pipelines:
     nodes:
       - name: 'Node0'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('node must contain field: type')
 
@@ -235,7 +235,7 @@ Pipelines:
       - name: 'Node0'
         type: 'Unknown'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Unsupported node type: Unknown')
 
@@ -255,7 +255,7 @@ Pipelines:
       - name: 'Node0'
         type: 'Dummy'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Node0 must contain field: time')
 
@@ -276,7 +276,7 @@ Pipelines:
         type: 'Dummy'
         time: -0.2\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Node0 time must be positive')
 
@@ -297,7 +297,7 @@ Pipelines:
         type: 'Dummy'
         time: 0.2\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Node0 must contain field: output')
 
@@ -317,7 +317,7 @@ Pipelines:
       - name: 'Node0'
         type: 'Infer'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     error_msg = """Path to OpenVINO model must be specified in either of two formats:
@@ -346,7 +346,7 @@ Pipelines:
         blob: model.blob
         device: 'CPU'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Node0 must contain field: input_layers')
@@ -371,7 +371,7 @@ Pipelines:
         input_layers:
             \" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('input_layers in Node0 must be a sequence')
@@ -396,7 +396,7 @@ Pipelines:
         input_layers:
           - 'layer_name'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Node0 must contain field: output_layers')
@@ -422,7 +422,7 @@ Pipelines:
           - 'layer_name'
         output_layers:\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('output_layers in Node0 must be a sequence')
@@ -447,7 +447,7 @@ Pipelines:
           dims: [1,2,3,4]
           precision: 'U8'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('PL1 must contain field: edges')
@@ -473,7 +473,7 @@ Pipelines:
           precision: 'U8'
     edges:\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('edges in PL1 must be a sequence')
@@ -500,7 +500,7 @@ Pipelines:
     edges:
       -\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('edge must contain field: from')
@@ -527,7 +527,7 @@ Pipelines:
     edges:
       - from: 'Node0'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('edge must contain field: to')
@@ -555,7 +555,7 @@ Pipelines:
       - from: 'Node1'
         to: 'Node2'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Failed to find node: Node1')
@@ -583,7 +583,7 @@ Pipelines:
       - from: 'Node0:10'
         to: 'Node2'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Failed to access node: Node0 by out port: 10')
@@ -611,7 +611,7 @@ Pipelines:
       - from: 'Src'
         to: 'Node2'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Failed to find node: Node2')
@@ -639,7 +639,7 @@ Pipelines:
       - from: 'Src'
         to: 'Node0:3'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Failed to access node: Node0 by in port: 3')
@@ -667,7 +667,7 @@ Pipelines:
       - from: 'Node0'
         to: 'Src'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Failed to access node: Src by in port: 0')
@@ -697,7 +697,7 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Node: Node0 already connected by in port: 0')
@@ -727,7 +727,7 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Node: Node0 already connected by in port: 0')
@@ -762,7 +762,7 @@ Pipelines:
       - from: 'Node0'
         to: 'Node1'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
 
     assert out.startswith('Node: Node0 in Pipeline: PL1 has dangling input by in port: 0')
@@ -795,7 +795,7 @@ Pipelines:
       - from: 'Node:0'
         to: 'Node:1'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Pipeline: PL1 has cyclic dependencies')
 
@@ -836,7 +836,7 @@ Pipelines:
       - from: 'Node1'
         to: 'Node0:1'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Pipeline: PL1 has cyclic dependencies')
 
@@ -863,7 +863,7 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-    exec_str = '{} --cfg={} --load_config=not_existing.yml'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file} --load_config=not_existing.yml'
     out = get_output(exec_str)
     assert 'Failed to load config: not_existing.yml' in out
 
@@ -890,14 +890,14 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-    exec_str = '{} --cfg={} --pl_mode=unknown'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file} --pl_mode=unknown'
     out = get_output(exec_str)
     assert out.startswith('Unsupported PLMode: unknown\n'
                           'Please chose between: streaming and regular')
 
 
 def test_error_invalid_pl_mode():
-  cfg_file = """\"%YAML:1.0
+    cfg_file = """\"%YAML:1.0
 work_time: 1000
 Pipelines:
   PL1:
@@ -918,10 +918,10 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-  exec_str = '{} --cfg={} --app_mode=unknown'.format(pipeline_modeling_tool, cfg_file)
-  out = get_output(exec_str)
-  assert out.startswith('Unsupported AppMode: unknown\n'
-                        'Please chose between: realtime and benchmark')
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file} --app_mode=unknown'
+    out = get_output(exec_str)
+    assert out.startswith('Unsupported AppMode: unknown\n'
+                          'Please chose between: realtime and benchmark')
 
 
 def test_error_drop_frames_with_streaming():
@@ -946,7 +946,7 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-    exec_str = '{} --cfg={} --pl_mode=streaming --drop_frames'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file} --pl_mode=streaming --drop_frames'
     out = get_output(exec_str)
     assert out.startswith('--drop_frames option is supported only for pipelines in "regular" mode')
 
@@ -998,6 +998,6 @@ Pipelines:
       - from: 'Src'
         to: 'Node0'\" """
 
-    exec_str = '{} --cfg={}'.format(pipeline_modeling_tool, cfg_file)
+    exec_str = f'{pipeline_modeling_tool} --cfg={cfg_file}'
     out = get_output(exec_str)
     assert out.startswith('Failed: Pipeline PL1 doesn\'t have stop criterion!')

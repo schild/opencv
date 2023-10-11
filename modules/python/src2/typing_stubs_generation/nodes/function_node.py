@@ -126,12 +126,12 @@ class FunctionNode(ASTNode):
                         'Failed to resolve "{}" argument: {}'.format(arg.name, e)
                     )
             if overload.return_type is not None and \
-                    has_unresolved_type_node(overload.return_type):
+                        has_unresolved_type_node(overload.return_type):
                 try:
                     overload.return_type.type_node.resolve(root)
                 except TypeResolutionError as e:
                     errors.append('Failed to resolve return type: {}'.format(e))
-        if len(errors) > 0:
+        if errors:
             raise TypeResolutionError(
                 'Failed to resolve "{}" function against "{}". Errors: {}'.format(
                     self.full_export_name, root.full_export_name,
